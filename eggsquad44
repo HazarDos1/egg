@@ -1,0 +1,176 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED ",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2025-05-24T12:00:00+02:00",
+  "name": "Squad 44",
+  "author": "chatgpt@openai.com",
+  "description": "Squad 44 is a tactical WWII shooter derived from Post Scriptum. This egg allows hosting dedicated servers for Squad 44 using SteamCMD.",
+  "features": [
+    "steam_disk_space"
+  ],
+  "docker_images": {
+    "ghcr.io/parkervcp/steamcmd:debian": "ghcr.io/parkervcp/steamcmd:debian"
+  },
+  "file_denylist": [],
+  "startup": "PostScriptum/Binaries/Linux/PostScriptumServer Port={{SERVER_PORT}} QueryPort={{QUERY_PORT}} -RCONPORT={{RCON_PORT}} -RCONPASSWORD={{RCON_PASSWORD}} -fullcrashdump -log",
+  "config": {
+    "files": {
+      "PostScriptum/ServerConfig/Server.cfg": {
+        "parser": "file",
+        "find": {
+          "ServerName": "ServerName={{server.build.env.hostname}}",
+          "MaxPlayers": "MaxPlayers={{server.build.env.maxplayers}}",
+          "AllowTeamChanges": "AllowTeamChanges={{server.build.env.allowteamchange}}",
+          "ShouldAdvertise": "ShouldAdvertise={{server.build.env.advertise}}",
+          "NumReservedSlots": "NumReservedSlots={{server.build.env.reservedslots}}",
+          "PreventTeamChangeIfUnbalanced": "PreventTeamChangeIfUnbalanced={{server.build.env.team_change}}",
+          "EnforceTeamBalance": "EnforceTeamBalance={{server.build.env.teambalance}}",
+          "RecordDemos": "RecordDemos={{server.build.env.demo_recording}}"
+        }
+      }
+    },
+    "startup": {
+      "done": "Engine Initialization"
+    },
+    "logs": {},
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\n\nif [[ \"${STEAM_USER}\" == \"\" ]] || [[ \"${STEAM_PASS}\" == \"\" ]]; then\n    echo -e \"Using anonymous Steam user.\"\n    STEAM_USER=anonymous\n    STEAM_PASS=\"\"\n    STEAM_AUTH=\"\"\nfi\n\ncd /tmp\nmkdir -p /mnt/server/steamcmd\ncurl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz\ntar -xzvf steamcmd.tar.gz -C /mnt/server/steamcmd\nmkdir -p /mnt/server/steamapps\ncd /mnt/server/steamcmd\n\nchown -R root:root /mnt\nexport HOME=/mnt/server\n\n./steamcmd.sh +force_install_dir /mnt/server +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +app_update ${SRCDS_APPID} validate +quit\n\nmkdir -p /mnt/server/.steam/sdk32\ncp -v linux32/steamclient.so ../.steam/sdk32/steamclient.so\nmkdir -p /mnt/server/.steam/sdk64\ncp -v linux64/steamclient.so ../.steam/sdk64/steamclient.so\n\necho \"Installation completed.\"",
+      "container": "ghcr.io/parkervcp/installers:debian",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Server Query Port",
+      "env_variable": "QUERY_PORT",
+      "default_value": "10037",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|numeric",
+      "field_type": "text"
+    },
+    {
+      "name": "RCON Port",
+      "env_variable": "RCON_PORT",
+      "default_value": "21114",
+      "user_viewable": true,
+      "user_editable": false,
+      "rules": "required|numeric",
+      "field_type": "text"
+    },
+    {
+      "name": "RCON Password",
+      "env_variable": "RCON_PASSWORD",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|regex:/^[a-zA-Z0-9]*$/",
+      "field_type": "text"
+    },
+    {
+      "name": "Auto Update",
+      "env_variable": "AUTO_UPDATE",
+      "default_value": "1",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|boolean",
+      "field_type": "text"
+    },
+    {
+      "name": "Server Name",
+      "env_variable": "hostname",
+      "default_value": "Squad 44 Server",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:32",
+      "field_type": "text"
+    },
+    {
+      "name": "Max Players",
+      "env_variable": "maxplayers",
+      "default_value": "80",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|numeric",
+      "field_type": "text"
+    },
+    {
+      "name": "Allow Team Change",
+      "env_variable": "allowteamchange",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Advertise Server",
+      "env_variable": "advertise",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Reserved Slots",
+      "env_variable": "reservedslots",
+      "default_value": "0",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|numeric|max:80",
+      "field_type": "text"
+    },
+    {
+      "name": "Prevent team change",
+      "env_variable": "team_change",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Enforce Team Balance",
+      "env_variable": "teambalance",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "Record Demos",
+      "env_variable": "demo_recording",
+      "default_value": "true",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|in:true,false",
+      "field_type": "text"
+    },
+    {
+      "name": "ld lib path",
+      "env_variable": "LD_LIBRARY_PATH",
+      "default_value": ".",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "App ID",
+      "env_variable": "SRCDS_APPID",
+      "default_value": "746200",
+      "user_viewable": false,
+      "user_editable": false,
+      "rules": "required|string|in:746200",
+      "field_type": "text"
+    }
+  ]
+}
